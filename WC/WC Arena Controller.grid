@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?><abs contexttype="opengear" gpiport="6001" httptriggerport="" id="main" keepalive="false">
    <timer autostart="true" id="checkLayerClip" pattern="HH:mm:ss" rate="2000" start="00:00:00" stop="00:00:00">
-      <timertask tasktype="ogscript">var host = params.getValue(0x2, 0);
-var port = params.getValue(0x3, 0);
+      
+   
+   <timertask tasktype="ogscript">var refresh = params.getValue(0x10, 0); // timer
 
-isClipSet(host, port, params.getValue(0x6, 0), params.getValue(0x7, 0), "b1")
-isClipSet(host, port, params.getValue(0x6, 1), params.getValue(0x7, 1), "b2")
-isClipSet(host, port, params.getValue(0x6, 2), params.getValue(0x7, 2), "b3")</timertask>
+if (refresh == "true") {
+   var host = params.getValue(0x2, 0);
+   var port = params.getValue(0x3, 0);
+   
+   isClipSet(host, port, params.getValue(0x6, 0), params.getValue(0x7, 0), "b1")
+   isClipSet(host, port, params.getValue(0x6, 1), params.getValue(0x7, 1), "b2")
+   isClipSet(host, port, params.getValue(0x6, 2), params.getValue(0x7, 2), "b3")
+}</timertask>
    </timer>
    <meta>
       <params>
@@ -13,12 +19,12 @@ isClipSet(host, port, params.getValue(0x6, 2), params.getValue(0x7, 2), "b3")</t
             <constraint key="0">Production</constraint>
             <constraint key="1">Configuration</constraint>
          </param>
-         <param access="1" maxlength="0" name="host" oid="0x2" type="STRING" value="192.168.0.151" widget="default"/>
+         <param access="1" maxlength="0" name="host" oid="0x2" type="STRING" value="10.1.30.85" widget="default"/>
          <param access="1" maxlength="0" name="port" oid="0x3" type="STRING" value="8080" widget="default"/>
          <param access="1" maxlength="0" name="layers" oid="0x6" precision="0" type="STRING_ARRAY" widget="default">
-            <value>3</value>
-            <value>3</value>
-            <value>3</value>
+            <value>5</value>
+            <value>5</value>
+            <value>5</value>
          </param>
          <param access="1" maxlength="0" name="clips" oid="0x7" precision="0" type="STRING_ARRAY" widget="default">
             <value>1</value>
@@ -26,6 +32,10 @@ isClipSet(host, port, params.getValue(0x6, 2), params.getValue(0x7, 2), "b3")</t
             <value>3</value>
          </param>
          <param access="1" maxlength="0" name="version" oid="0xff" type="STRING" value="3.0" widget="default"/>
+         <param access="1" constrainttype="STRING_CHOICE" maxlength="0" name="refresh" oid="0x10" type="STRING" value="true" widget="radio-toggle">
+            <constraint>true</constraint>
+            <constraint>false</constraint>
+         </param>
       </params>
       <ogscript handles="onload" id="main-onload" name="Main onload handler" targetid="main">ogscript.debug ('main onload handler');</ogscript>
       <api>function debugPrint(result)
@@ -166,7 +176,9 @@ ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</tas
          </simplegrid>
          <label bottom="30" height="20" name="Version" right="62" style="txt-align:east" width="80"/>
          <param expand="true" height="20" oid="0xff" right="12" top="799" widget="100" width="40"/>
-         <param editable="false" expand="true" height="19" left="1560" oid="0xff" showlabel="false" style="bdr:none;" top="738" width="27"/>
+         
+      <param expand="true" height="32" left="140" oid="0x10" showlabel="false" top="184" width="118"/>
+         <label height="28" left="26" name="Refresh State" style="txt-align:west" top="187" width="101"/>
       </abs>
    </tab>
 </abs>
