@@ -24,13 +24,7 @@ isClipSet("192.168.0.151", 8080, 3, 3, "b3")</timertask>
          </param>
          <param access="1" maxlength="0" name="version" oid="0xff" type="STRING" value="3.0" widget="default"/>
       </params>
-      <api>function updateNames()
-      {
-         ogscript.debug('updateNames()');
-         ogscript.rename('b1', params.getValue(0x05, 0));
-         ogscript.rename('b2', params.getValue(0x05, 1));
-         ogscript.rename('b3', params.getValue(0x05, 2));
-      }</api>
+      
       <ogscript handles="onload" id="main-onload" name="Main onload handler" targetid="main">ogscript.debug ('main onload handler');updateNames();</ogscript>
       <api>function debugPrint(result)
 {
@@ -48,9 +42,9 @@ function isClipSet(host, port, layer, clip, ctrl)
       if (result.responseCode == 200) {
          var j = JSON.parse(result.value);
          if (j.connected.value == "Connected") {
-            ogscript.setStyle(ctrl, 'bdr#red;bdr:thick;');
+            ogscript.setStyle(ctrl, 'bg#red;size:Biggest;');
          } else {
-            ogscript.setStyle(ctrl, 'bdr#red;bdr:none;');
+            ogscript.setStyle(ctrl, 'bg#lightdivider;size:Biggest;');
          }
          if (j.name.value == "") {
             ogscript.rename(ctrl, "[Clear]");
@@ -85,7 +79,7 @@ function isClipSet(host, port, layer, clip, ctrl)
       <abs id="production-tab" name="Production" style="bdr:etched;bg#dark;">
          <meta/>
          <simplegrid bottom="225" cols="3" hspace="100" left="20" right="20" style="txt-align:center;size:Biggest;" top="180">
-            <button buttontype="push" gpi="1" id="b1" name="" style="size:Biggest;bg#selectbg;">
+            <button buttontype="push" gpi="1" id="b1" name="" style="size:Biggest;bg#lightdivider;">
                <task tasktype="ogscript">function callback(result)
 {
    ogscript.setStyle("b1", 'bdr#red;bdr:thick;');
@@ -102,7 +96,7 @@ var clip = params.getValue(0x7, i);
 var urlStr = "http://" + host + ":" + port + "/api/v1/composition/layers/" + layer + "/clips/" + clip + "/connect"
 ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</task>
             </button>
-            <button buttontype="push" gpi="2" id="b2" name="" style="bg#orange;size:Biggest;">
+            <button buttontype="push" gpi="2" id="b2" name="" style="bg#lightdivider;size:Biggest;bdr:thick;">
                <task tasktype="ogscript">function callback(result)
 {
    ogscript.setStyle("b1", 'bdr#red;bdr:none;');
