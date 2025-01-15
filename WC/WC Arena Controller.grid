@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?><abs contexttype="opengear" gpiport="6001" httptriggerport="" id="main" keepalive="false">
    <timer autostart="true" id="checkLayerClip" pattern="HH:mm:ss" rate="2000" start="00:00:00" stop="00:00:00">
-      <timertask tasktype="ogscript">isClipSet("192.168.0.151", 8080, 3, 1, "b1")
-isClipSet("192.168.0.151", 8080, 3, 2, "b2")
-isClipSet("192.168.0.151", 8080, 3, 3, "b3")</timertask>
+      <timertask tasktype="ogscript">var host = params.getValue(0x2, 0);
+var port = params.getValue(0x3, 0);
+
+isClipSet(host, port, params.getValue(0x6, 0), params.getValue(0x7, 0), "b1")
+isClipSet(host, port, params.getValue(0x6, 1), params.getValue(0x7, 1), "b2")
+isClipSet(host, port, params.getValue(0x6, 2), params.getValue(0x7, 2), "b3")</timertask>
    </timer>
    <meta>
       <params>
@@ -24,8 +27,7 @@ isClipSet("192.168.0.151", 8080, 3, 3, "b3")</timertask>
          </param>
          <param access="1" maxlength="0" name="version" oid="0xff" type="STRING" value="3.0" widget="default"/>
       </params>
-      
-      <ogscript handles="onload" id="main-onload" name="Main onload handler" targetid="main">ogscript.debug ('main onload handler');updateNames();</ogscript>
+      <ogscript handles="onload" id="main-onload" name="Main onload handler" targetid="main">ogscript.debug ('main onload handler');</ogscript>
       <api>function debugPrint(result)
 {
    var output = '';
@@ -56,8 +58,7 @@ function isClipSet(host, port, layer, clip, ctrl)
 
    var urlStr = "http://" + host + ":" + port + "/api/v1/composition/layers/" + layer + "/clips/" + clip
    ogscript.asyncHTTP(urlStr, 'GET', 'application/json', null, callback, true);
-}
-</api>
+}</api>
    </meta>
    <abs height="82" left="5" right="8" style="bdr:etched;bg#dark;" top="6">
       <label bottom="5" left="5" name="LED Wall CG Controller" right="5" style="txt-align:center;font:bold;size:Biggest;" top="5"/>
@@ -112,7 +113,7 @@ var clip = params.getValue(0x7, i);
 var urlStr = "http://" + host + ":" + port + "/api/v1/composition/layers/" + layer + "/clips/" + clip + "/connect"
 ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</task>
             </button>
-            <button buttontype="push" gpi="3" id="b3" name="Clear" style="bg#lightdivider;size:Biggest;">
+            <button buttontype="push" gpi="3" id="b3" name="" style="bg#lightdivider;size:Biggest;">
                <task tasktype="ogscript">function callback(result)
 {
    ogscript.setStyle("b1", 'bdr#red;bdr:none;');
@@ -165,7 +166,7 @@ ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</tas
          </simplegrid>
          <label bottom="30" height="20" name="Version" right="62" style="txt-align:east" width="80"/>
          <param expand="true" height="20" oid="0xff" right="12" top="799" widget="100" width="40"/>
-      <param editable="false" expand="true" height="19" left="1560" oid="0xff" showlabel="false" style="bdr:none;" top="738" width="27"/>
+         <param editable="false" expand="true" height="19" left="1560" oid="0xff" showlabel="false" style="bdr:none;" top="738" width="27"/>
       </abs>
    </tab>
 </abs>
