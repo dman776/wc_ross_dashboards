@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><abs contexttype="opengear" gpiport="6001" httptriggerport="" id="main" keepalive="false">
+   <timer autostart="true" id="checkLayerClip" pattern="HH:mm:ss" rate="2000" start="00:00:00" stop="00:00:00">
+      <timertask tasktype="ogscript">isClipSet("192.168.0.151", 8080, 3, 1, "b1")
+isClipSet("192.168.0.151", 8080, 3, 2, "b2")
+isClipSet("192.168.0.151", 8080, 3, 3, "b3")</timertask>
+   </timer>
+   <meta>
+      <params>
+         <param access="1" constrainttype="INT_CHOICE" name="Tab Selection" oid="Tab_Selection" precision="0" stateless="true" type="INT32" value="1" widget="radio-toggle">
+            <constraint key="0">Production</constraint>
+            <constraint key="1">Configuration</constraint>
+         </param>
+         <param access="1" maxlength="0" name="host" oid="0x2" type="STRING" value="192.168.0.151" widget="default"/>
+         <param access="1" maxlength="0" name="port" oid="0x3" type="STRING" value="8080" widget="default"/>
+         <param access="1" maxlength="0" name="layers" oid="0x6" precision="0" type="STRING_ARRAY" widget="default">
+            <value>3</value>
+            <value>3</value>
+            <value>3</value>
+         </param>
+         <param access="1" maxlength="0" name="clips" oid="0x7" precision="0" type="STRING_ARRAY" widget="default">
+            <value>1</value>
+            <value>2</value>
+            <value>3</value>
+         </param>
+         <param access="1" maxlength="0" name="version" oid="0xff" type="STRING" value="3.0" widget="default"/>
+      </params>
+      <api>function updateNames()
+      {
+         ogscript.debug('updateNames()');
+         ogscript.rename('b1', params.getValue(0x05, 0));
+         ogscript.rename('b2', params.getValue(0x05, 1));
+         ogscript.rename('b3', params.getValue(0x05, 2));
+      }</api>
+      <ogscript handles="onload" id="main-onload" name="Main onload handler" targetid="main">ogscript.debug ('main onload handler');updateNames();</ogscript>
+      <api>function debugPrint(result)
+{
+   var output = '';
+   for (var property in result) {
+      output += property + ': ' + result[property]+'; \n\r';
+   }
+   ogscript.debug(output);
+}
+
+function isClipSet(host, port, layer, clip, ctrl)
+{
+   function callback(result)
+   {
+      if (result.responseCode == 200) {
+         var j = JSON.parse(result.value);
+         if (j.connected.value == "Connected") {
+            ogscript.setStyle(ctrl, 'bdr#red;bdr:thick;');
+         } else {
+            ogscript.setStyle(ctrl, 'bdr#red;bdr:none;');
+         }
+         if (j.name.value == "") {
+            ogscript.rename(ctrl, "[Clear]");
+         } else {
+            ogscript.rename(ctrl, j.name.value);
+         }
+      }  
+   }
+
+   var urlStr = "http://" + host + ":" + port + "/api/v1/composition/layers/" + layer + "/clips/" + clip
+   ogscript.asyncHTTP(urlStr, 'GET', 'application/json', null, callback, true);
+}
+</api>
+   </meta>
+   <abs height="82" left="5" right="8" style="bdr:etched;bg#dark;" top="6">
+      <label bottom="5" left="5" name="LED Wall CG Controller" right="5" style="txt-align:center;font:bold;size:Biggest;" top="5"/>
+      <label bottom="5" right="5" style="bg-u:wclogo.png;bg-align:center;bg-fill:shrink;" top="5" width="169"/>
+      <param bottom="5" expand="true" left="5" oid="Tab_Selection" runtasksonload="true" style="style:toggleButton;" top="5" width="250">
+         <task tasktype="ogscript">var selection = params.getValue('Tab_Selection', 0);
+   updateNames();
+   if (selection == 0)
+   {
+      ogscript.reveal('production-tab');
+   }
+   else if (selection == 1)
+   {
+      ogscript.reveal('config-tab');
+   }</task>
+      </param>
+   </abs>
+   <tab bottom="2" left="15" right="0" tabposition="none" top="103">
+      <abs id="production-tab" name="Production" style="bdr:etched;bg#dark;">
+         <meta/>
+         <simplegrid bottom="225" cols="3" hspace="100" left="20" right="20" style="txt-align:center;size:Biggest;" top="180">
+            <button buttontype="push" gpi="1" id="b1" name="" style="size:Biggest;bg#selectbg;">
+               <task tasktype="ogscript">function callback(result)
+{
+   ogscript.setStyle("b1", 'bdr#red;bdr:thick;');
+   ogscript.setStyle("b2", 'bdr#red;bdr:none;');
+   ogscript.setStyle("b3", 'bdr#red;bdr:none;');
+}
+i = 0
+var host = params.getValue(0x2, 0);
+var port = params.getValue(0x3, 0);
+var layer = params.getValue(0x6, i);
+var clip = params.getValue(0x7, i);
+
+
+var urlStr = "http://" + host + ":" + port + "/api/v1/composition/layers/" + layer + "/clips/" + clip + "/connect"
+ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</task>
+            </button>
+            <button buttontype="push" gpi="2" id="b2" name="" style="bg#orange;size:Biggest;">
+               <task tasktype="ogscript">function callback(result)
+{
+   ogscript.setStyle("b1", 'bdr#red;bdr:none;');
+   ogscript.setStyle("b2", 'bdr#red;bdr:thick;');
+   ogscript.setStyle("b3", 'bdr#red;bdr:none;');
+}
+i = 1
+var host = params.getValue(0x2, 0);
+var port = params.getValue(0x3, 0);
+var layer = params.getValue(0x6, i);
+var clip = params.getValue(0x7, i);
+
+
+var urlStr = "http://" + host + ":" + port + "/api/v1/composition/layers/" + layer + "/clips/" + clip + "/connect"
+ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</task>
+            </button>
+            <button buttontype="push" gpi="3" id="b3" name="Clear" style="bg#lightdivider;size:Biggest;">
+               <task tasktype="ogscript">function callback(result)
+{
+   ogscript.setStyle("b1", 'bdr#red;bdr:none;');
+   ogscript.setStyle("b2", 'bdr#red;bdr:none;');
+   ogscript.setStyle("b3", 'bdr#red;bdr:thick;');
+}
+i = 2
+var host = params.getValue(0x2, 0);
+var port = params.getValue(0x3, 0);
+var layer = params.getValue(0x6, i);
+var clip = params.getValue(0x7, i);
+
+
+var urlStr = "http://" + host + ":" + port + "/api/v1/composition/layers/" + layer + "/clips/" + clip + "/connect"
+ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</task>
+            </button>
+         </simplegrid>
+      </abs>
+      <abs id="config-tab" name="Configuration" style="bdr:etched;bg#dark;">
+         <param expand="true" height="47" left="105" oid="ip_host" top="36" width="185"/>
+         <param expand="true" height="39" id="osc_port" left="313" name="OSC Port" oid="ip_port" top="38" width="176"/>
+         <simplegrid cols="2" height="140" hspace="10" left="22" rows="2" style="bg#buttonbg;bdr#panelfg;bdr:round;grid#readonlyborder;" top="20" width="937">
+            <simplegrid>
+               <label name="REST API Host/IP" style="txt-align:east;"/>
+            </simplegrid>
+            <param expand="true" oid="0x2" showlabel="false"/>
+            <label name="REST API Port" style="txt-align:east;"/>
+            <param expand="true" oid="0x3" showlabel="false"/>
+            <param expand="true" oid="0x4" showlabel="false"/>
+         </simplegrid>
+         <simplegrid cols="2" height="360" left="20" rows="4" style="grid#readonlyborder;bdr#panelfg;bdr:round;txt-align:center;" top="240" width="940">
+            <meta/>
+            <label header="true" name="Arena Layer" style="txt-align:center"/>
+            <label header="true" name="Arena Clip" style="txt-align:center;"/>
+            <param element="0" expand="true" oid="0x5" showlabel="false" style="txt-align:center;">
+               <task tasktype="ogscript">updateNames();</task>
+            </param>
+            <param element="0" expand="true" oid="0x6" showlabel="false" style="txt-align:center;"/>
+            <param element="0" expand="true" oid="0x7" showlabel="false" style="txt-align:center;"/>
+            <param element="1" expand="true" oid="0x5" showlabel="false" style="txt-align:center;">
+               <task tasktype="ogscript">updateNames();</task>
+            </param>
+            <param element="1" expand="true" oid="0x6" showlabel="false" style="txt-align:center;"/>
+            <param element="1" expand="true" oid="0x7" showlabel="false" style="txt-align:center;"/>
+            <param element="2" expand="true" oid="0x5" showlabel="false" style="txt-align:center;">
+               <task tasktype="ogscript">updateNames();</task>
+            </param>
+            <param element="2" expand="true" oid="0x6" showlabel="false" style="txt-align:center;"/>
+            <param element="2" expand="true" oid="0x7" showlabel="false" style="txt-align:center;"/>
+         </simplegrid>
+         <label bottom="30" height="20" name="Version" right="62" style="txt-align:east" width="80"/>
+         <param expand="true" height="20" oid="0xff" right="12" top="799" widget="100" width="40"/>
+      <param editable="false" expand="true" height="19" left="1560" oid="0xff" showlabel="false" style="bdr:none;" top="738" width="27"/>
+      </abs>
+   </tab>
+</abs>

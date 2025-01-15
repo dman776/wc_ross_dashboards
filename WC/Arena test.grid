@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><abs contexttype="opengear" gridsize="20" id="_top" keepalive="false" style="">
+   <meta>
+      <params>
+         <param access="1" maxlength="0" name="host" oid="0x2" type="STRING" value="192.168.0.151" widget="default"/>
+         <param access="1" maxlength="0" name="port" oid="0x3" type="STRING" value="8080" widget="default"/>
+      </params>
+   </meta>
+   <timer autostart="true" id="checkLayerClip" pattern="HH:mm:ss" rate="2000" start="00:00:00" stop="00:00:00">
+      <timertask tasktype="ogscript">isClipSet("192.168.0.151", 8080, 3, 1, "l3c1")
+isClipSet("192.168.0.151", 8080, 3, 2, "l3c2")
+isClipSet("192.168.0.151", 8080, 3, 3, "l3c3")</timertask>
+   </timer>
+   <meta>
+      <api>function debugPrint(result)
+{
+   var output = '';
+   for (var property in result) {
+      output += property + ': ' + result[property]+'; \n\r';
+   }
+   ogscript.debug(output);
+}
+
+function isClipSet(host, port, layer, clip, ctrl)
+{
+   function callback(result)
+   {
+      if (result.responseCode == 200) {
+         var j = JSON.parse(result.value);
+         if (j.connected.value == "Connected") {
+            ogscript.setStyle(ctrl, 'bdr#red;bdr:thick;');
+         } else {
+            ogscript.setStyle(ctrl, 'bdr#red;bdr:none;');
+         }
+         if (j.name.value == "") {
+            ogscript.rename(ctrl, "[Clear]");
+         } else {
+            ogscript.rename(ctrl, j.name.value);
+         }
+      }  
+   }
+
+   var urlStr = "http://" + host + ":" + port + "/api/v1/composition/layers/" + layer + "/clips/" + clip
+   ogscript.asyncHTTP(urlStr, 'GET', 'application/json', null, callback, true);
+}
+</api>
+   </meta>
+   <button buttontype="push" height="105" id="l3c1" left="318" name="Layer 3 Clip 1" style="bdr#red;bdr:none;" top="96" width="148">
+      <task tasktype="ogscript">function callback(result)
+{
+   ogscript.setStyle("l3c1", 'bdr#red;bdr:thick;');
+   ogscript.setStyle("l3c2", 'bdr#red;bdr:none;');
+   ogscript.setStyle("l3c3", 'bdr#red;bdr:none;');
+}
+var urlStr = "http://192.168.0.151:8080/api/v1/composition/layers/3/clips/1/connect"
+ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</task>
+   </button>
+   
+   <button buttontype="push" height="100" id="l3c2" left="320" name="Layer 3 Clip 2" style="bdr#red;bdr:none;" top="220" width="140">
+      <task tasktype="ogscript">function callback(result)
+{
+   ogscript.setStyle("l3c1", 'bdr#red;bdr:none;');
+   ogscript.setStyle("l3c2", 'bdr#red;bdr:thick;');
+   ogscript.setStyle("l3c3", 'bdr#red;bdr:none;');
+}
+var urlStr = "http://192.168.0.151:8080/api/v1/composition/layers/3/clips/2/connect"
+ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</task>
+   </button>
+   <button buttontype="push" height="100" id="l3c3" left="320" name="Layer 3 Clip 3" style="bdr#red;bdr:none;" top="340" width="140">
+      <task tasktype="ogscript">function callback(result)
+{
+   ogscript.setStyle("l3c1", 'bdr#red;bdr:none;');
+   ogscript.setStyle("l3c2", 'bdr#red;bdr:none;');
+   ogscript.setStyle("l3c3", 'bdr#red;bdr:thick;');
+}
+var urlStr = "http://192.168.0.151:8080/api/v1/composition/layers/3/clips/3/connect"
+ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</task>
+   </button>
+</abs>
