@@ -64,7 +64,6 @@ function isClipSet(host, port, layer, clip, ctrl)
       <label bottom="5" right="5" style="bg-u:wclogo.png;bg-align:center;bg-fill:shrink;" top="5" width="169"/>
       <param bottom="5" expand="true" left="5" oid="Tab_Selection" runtasksonload="true" style="style:toggleButton;" top="5" width="250">
          <task tasktype="ogscript">var selection = params.getValue('Tab_Selection', 0);
-   updateNames();
    if (selection == 0)
    {
       ogscript.reveal('production-tab');
@@ -96,7 +95,7 @@ var clip = params.getValue(0x7, i);
 var urlStr = "http://" + host + ":" + port + "/api/v1/composition/layers/" + layer + "/clips/" + clip + "/connect"
 ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</task>
             </button>
-            <button buttontype="push" gpi="2" id="b2" name="" style="bg#lightdivider;size:Biggest;bdr:thick;">
+            <button buttontype="push" gpi="2" id="b2" name="" style="bg#lightdivider;size:Biggest;bdr:none;">
                <task tasktype="ogscript">function callback(result)
 {
    ogscript.setStyle("b1", 'bdr#red;bdr:none;');
@@ -144,7 +143,7 @@ ogscript.asyncHTTP(urlStr, 'POST', 'application/json', '', callback, true);</tas
             <param expand="true" oid="0x3" showlabel="false"/>
             <param expand="true" oid="0x4" showlabel="false"/>
          </simplegrid>
-         <simplegrid cols="2" height="360" left="20" rows="4" style="grid#readonlyborder;bdr#panelfg;bdr:round;txt-align:center;" top="240" width="940">
+         <simplegrid cols="2" height="360" left="20" rows="4" style="grid#lightdivider;bdr#panelfg;bdr:round;txt-align:center;" top="240" width="940">
             <meta/>
             <label header="true" name="Arena Layer" style="txt-align:center"/>
             <label header="true" name="Arena Clip" style="txt-align:center;"/>
