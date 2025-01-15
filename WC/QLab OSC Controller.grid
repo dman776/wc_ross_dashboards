@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?><abs contexttype="opengear" gpiport="6002" httptriggerport="" id="main" keepalive="false">
+   <meta>
+      <params>
+         <param access="1" constrainttype="INT_CHOICE" name="Tab Selection" oid="Tab_Selection" precision="0" stateless="true" type="INT32" value="0" widget="radio-toggle">
+            <constraint key="0">Production</constraint>
+            <constraint key="1">Configuration</constraint>
+         </param>
+         <param access="1" maxlength="0" name="osc_host" oid="0x2" type="STRING" value="10.1.30.47" widget="default"/>
+         <param access="1" maxlength="0" name="osc_port" oid="0x3" type="STRING" value="8000" widget="default"/>
+         <param access="1" maxlength="0" name="osc_url" oid="0x4" type="STRING" value="/cue/{ID}/start" widget="default"/>
+         <param access="1" maxlength="0" name="names" oid="0x5" precision="0" type="STRING_ARRAY" widget="default">
+            <value>TC Start</value>
+            <value>Cam4 Park</value>
+            <value>Rehearsal Start</value>
+            <value>N/A</value>
+            <value>N/A</value>
+            <value>N/A</value>
+         </param>
+         <param access="1" maxlength="0" name="clips" oid="0x7" precision="0" type="STRING_ARRAY" widget="default">
+            <value>12</value>
+            <value>13</value>
+            <value>2</value>
+            <value>91</value>
+            <value>92</value>
+            <value>93</value>
+         </param>
+         <param access="1" maxlength="0" name="version" oid="0xff" type="STRING" value="1.0" widget="default"/>
+      </params>
+      <api>function updateNames()
+{
+   ogscript.rename('b1', params.getValue(0x05, 0));
+   ogscript.rename('b2', params.getValue(0x05, 1));
+   ogscript.rename('b3', params.getValue(0x05, 2));
+   ogscript.rename('b4', params.getValue(0x05, 3));
+   ogscript.rename('b5', params.getValue(0x05, 4));
+   ogscript.rename('b6', params.getValue(0x05, 5));
+}</api>
+      <ogscript handles="onload" id="main-onload" name="Main onload handler" targetid="main">ogscript.debug ('main onload handler');</ogscript>
+      <api>function createOSCMessage(cmd, val, varType)
+   {
+      var messageBuilder = ogscript.createMessageBuilder();
+      var len = cmd.length+1;
+      var pad = (4 - len%4)%4;
+      var cmdLen = len+pad; // must be integer multiple of 4
+      //ogscript.debug ("length: " + len + " pad: " + pad + " = " + cmdLen);
+      messageBuilder.writeString(cmd);      
+      
+      // put null terminator at end of command string
+      messageBuilder.writeChar(0); // null terminator
+      
+      // pad end of command string with nulls
+      for (var i=0; i&lt;pad; ++i) 
+      {
+         messageBuilder.writeChar(0);
+      }
+        
+      // set the 4 bytes that identify the format
+      messageBuilder.writeChar(',');
+
+      if (varType == 'float')
+      {
+         messageBuilder.writeChar('f');
+         messageBuilder.writeChar(0);
+         messageBuilder.writeChar(0);
+         messageBuilder.writeFloat(val);
+      }
+      else if (varType == 'int')
+      {
+         messageBuilder.writeChar('i');
+         messageBuilder.writeChar(0);
+         messageBuilder.writeChar(0);
+         messageBuilder.writeInt(val);
+      }
+     else if (varType == 'string')
+     {
+         messageBuilder.writeChar('s');
+         messageBuilder.writeChar(0);
+         messageBuilder.writeChar(0);
+         messageBuilder.writeString(val);    
+     }
+     
+
+     // DLQ: added 2 NULLs after all datatypes (broken otherwise)
+     messageBuilder.writeChar(0);
+     messageBuilder.writeChar(0);
+     messageBuilder.writeChar(0);
+   
+      return messageBuilder.toByteArray();
+}
+
+function sendOSCMessageFloat(ip, port, cmd, val)
+{
+   ogscript.sendUDPBytes(ip, port, createOSCMessage(cmd, val, 'float'));
+   ogscript.debug('OSC Float Sent');
+}
+
+function sendOSCMessageInt(ip, port, cmd, val)
+{
+   ogscript.sendUDPBytes(ip, port, createOSCMessage(cmd, val, 'int'));
+   ogscript.debug('OSC Int Sent');
+}
+
+function sendOSCMessageString(ip, port, cmd, val)
+{
+   ogscript.sendUDPBytes(ip, port, createOSCMessage(cmd, val, 'string'));
+   ogscript.debug('OSC String Sent');
+}
+
+function sendOSCMessageUntyped(ip, port, cmd, val)
+{
+   ogscript.sendUDPBytes(ip, port, createOSCMessage(cmd, val, 'none'));
+   ogscript.debug('OSC String Sent');
+}</api>
+   </meta>
+   <abs height="82" left="5" right="8" style="bdr:etched;bg#dark;" top="6">
+      <label bottom="5" left="5" name="QLab Controller" right="5" style="txt-align:center;font:bold;size:Biggest;" top="5"/>
+      <label bottom="5" right="5" style="bg-u:wclogo.png;bg-align:center;bg-fill:shrink;" top="5" width="169"/>
+      <param bottom="5" expand="true" left="5" oid="Tab_Selection" runtasksonload="true" style="style:toggleButton;" top="5" width="250">
+         <task tasktype="ogscript">var selection = params.getValue('Tab_Selection', 0);
+updateNames();
+if (selection == 0)
+{
+   ogscript.reveal('production-tab');
+}
+else if (selection == 1)
+{
+   ogscript.reveal('config-tab');
+}</task>
+      </param>
+   </abs>
+   <tab bottom="2" left="15" right="0" tabposition="none" top="103">
+      <abs id="production-tab" name="Production" style="bdr:etched;bg#dark;">
+         <meta/>
+         <simplegrid bottom="383" cols="3" hspace="100" left="20" right="20" rows="2" style="txt-align:center;size:Biggest;" top="20" vspace="50">
+            <button buttontype="push" gpi="1" id="b1" name="b1" style="size:Bigger;bg#selectbg;">
+               <task tasktype="ogscript">i = 0
+var host = params.getValue(0x02, 0);
+var port = params.getValue(0x03, 0);
+var clip = params.getValue(0x07, i);
+var url_pattern = params.getValue(0x04, 0);
+
+oscCommand = url_pattern.replace("{ID}", clip);
+
+ogscript.debug('command: ' + oscCommand);
+var oscValue = '';
+sendOSCMessageString(host, port, oscCommand, oscValue);</task>
+            </button>
+            <button buttontype="push" gpi="2" id="b2" name="b2" style="bg#orange;size:Bigger;">
+               <task tasktype="ogscript">i = 1
+var host = params.getValue(0x02, 0);
+var port = params.getValue(0x03, 0);
+var clip = params.getValue(0x07, i);
+var url_pattern = params.getValue(0x04, 0);
+
+oscCommand = url_pattern.replace("{ID}", clip);
+
+ogscript.debug('command: ' + oscCommand);
+var oscValue = '';
+sendOSCMessageString(host, port, oscCommand, oscValue);</task>
+            </button>
+            <button buttontype="push" gpi="3" id="b3" name="b3" style="bg#lightdivider;size:Bigger;">
+               <task tasktype="ogscript">i = 2
+var host = params.getValue(0x02, 0);
+var port = params.getValue(0x03, 0);
+var clip = params.getValue(0x07, i);
+var url_pattern = params.getValue(0x04, 0);
+
+oscCommand = url_pattern.replace("{ID}", clip);
+
+ogscript.debug('command: ' + oscCommand);
+var oscValue = '';
+sendOSCMessageString(host, port, oscCommand, oscValue);</task>
+            </button>
+            <button buttontype="push" gpi="4" id="b4" name="b4" style="size:Bigger;bg#selectbg;">
+               <task tasktype="ogscript">i = 3
+var host = params.getValue(0x02, 0);
+var port = params.getValue(0x03, 0);
+var clip = params.getValue(0x07, i);
+var url_pattern = params.getValue(0x04, 0);
+
+oscCommand = url_pattern.replace("{ID}", clip);
+
+ogscript.debug('command: ' + oscCommand);
+var oscValue = '';
+sendOSCMessageString(host, port, oscCommand, oscValue);</task>
+            </button>
+            <button buttontype="push" gpi="5" id="b5" name="b5" style="bg#orange;size:Bigger;">
+               <task tasktype="ogscript">i = 4
+var host = params.getValue(0x02, 0);
+var port = params.getValue(0x03, 0);
+var clip = params.getValue(0x07, i);
+var url_pattern = params.getValue(0x04, 0);
+
+oscCommand = url_pattern.replace("{ID}", clip);
+
+ogscript.debug('command: ' + oscCommand);
+var oscValue = '';
+sendOSCMessageString(host, port, oscCommand, oscValue);</task>
+            </button>
+            <button buttontype="push" gpi="6" id="b6" name="b6" style="bg#lightdivider;size:Bigger;">
+               <task tasktype="ogscript">i = 5
+var host = params.getValue(0x02, 0);
+var port = params.getValue(0x03, 0);
+var clip = params.getValue(0x07, i);
+var url_pattern = params.getValue(0x04, 0);
+
+oscCommand = url_pattern.replace("{ID}", clip);
+
+ogscript.debug('command: ' + oscCommand);
+var oscValue = '';
+sendOSCMessageString(host, port, oscCommand, oscValue);</task>
+            </button>
+         </simplegrid>
+      </abs>
+      <abs id="config-tab" name="Configuration" style="bdr:etched;bg#dark;">
+         <param expand="true" height="47" left="105" oid="ip_host" top="36" width="185"/>
+         <param expand="true" height="39" id="osc_port" left="313" name="OSC Port" oid="ip_port" top="38" width="176"/>
+         <simplegrid cols="2" height="140" hspace="10" left="22" rows="3" style="bg#buttonbg;bdr#panelfg;bdr:round;grid#readonlyborder;" top="20" width="937">
+            <simplegrid>
+               <label name="OSC Host/IP" style="txt-align:east;"/>
+            </simplegrid>
+            <param expand="true" oid="0x2" showlabel="false"/>
+            <label name="OSC Port" style="txt-align:east;"/>
+            <param expand="true" oid="0x3" showlabel="false"/>
+            <label header="true" name="OSC URL" style="txt-align:east;"/>
+            <param expand="true" oid="0x4" showlabel="false"/>
+         </simplegrid>
+         <simplegrid cols="2" height="360" left="20" rows="6" style="grid#readonlyborder;bdr#panelfg;bdr:round;txt-align:center;" top="240" width="940">
+            <meta/>
+            <label header="true" name="Trigger Name" style="txt-align:center;"/>
+            <label header="true" name="Clip ID" style="txt-align:center;"/>
+            <param element="0" expand="true" oid="0x5" showlabel="false">
+               <task tasktype="ogscript">updateNames();</task>
+            </param>
+            <param element="0" expand="true" oid="0x7" showlabel="false"/>
+            <param element="1" expand="true" oid="0x5" showlabel="false">
+               <task tasktype="ogscript">updateNames();</task>
+            </param>
+            <param element="1" expand="true" oid="0x7" showlabel="false"/>
+            <param element="2" expand="true" oid="0x5" showlabel="false">
+               <task tasktype="ogscript">updateNames();</task>
+            </param>
+            <param element="2" expand="true" oid="0x7" showlabel="false"/>
+            <param element="3" expand="true" oid="0x5" showlabel="false">
+               <task tasktype="ogscript">updateNames();</task>
+            </param>
+            <param element="3" expand="true" oid="0x7" showlabel="false"/>
+            <param element="4" expand="true" oid="0x5" showlabel="false">
+               <task tasktype="ogscript">updateNames();</task>
+            </param>
+            <param element="4" expand="true" oid="0x7" showlabel="false"/>
+         </simplegrid>
+         <label bottom="30" height="20" name="Version" right="62" style="txt-align:east" width="80"/>
+         <param expand="true" height="20" oid="0xff" right="12" top="799" widget="100" width="40"/>
+      </abs>
+   </tab>
+</abs>
